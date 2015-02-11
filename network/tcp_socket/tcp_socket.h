@@ -7,10 +7,18 @@
 #include <winsock.h>
 #endif // WIN32
 
+#include "AbstractSocket.h"
 
-class CTcpSocket
+
+class CTcpSocket : public IAbstractSocket
 {
 public:
+
+	// IAbstractSocket
+	virtual int	Send(const void * data, uint byteCount);
+	virtual int	Recv(void * buffer, uint maxByteCount);
+	virtual void Close();
+
 	CTcpSocket();
 
 	// server
@@ -19,11 +27,6 @@ public:
 	  
 	// client
 	int Connect(const char *pIPaddr, unsigned int nPort);
-	  
-	// common
-	int		Send(const void *pData, unsigned int nLen);
-	int		Recv( char * pData, unsigned int nLen );
-	void	Close();
 
 //private:
 	SOCKADDR_IN	m_addr;

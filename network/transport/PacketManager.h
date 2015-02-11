@@ -31,7 +31,10 @@ public:
 	void RemoveClent(CTcpSocket * clientSocket);
 
 	/// обходим все сокеты, ищем полученные данные, callbacks
-	void OnUpdate();
+	void OnUpdate()
+	{
+
+	}
 
 	void SendPacket(CTcpSocket * clientSocket, BufferObject * data, void * callBack);
 

@@ -56,11 +56,11 @@ public:
 	bool OnUpdate()
 	{
 		// iterate accepted client list
-
 		CheckListenThread();
 
-		return true;
+		m_commandMgr.m_packetMgr->OnUpdate();
 
+		return true;
 		// or false for program stop
 	}
 

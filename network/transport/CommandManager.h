@@ -24,8 +24,6 @@ public:
 		// Write command header
 		return dstData->Write(0, HEADER, sizeof(HEADER));
 	}
-
-
 };
 
 
@@ -58,7 +56,7 @@ public:
 
 
 
-private:
+//private:
 	CPacketManager * m_packetMgr;
 
 	typedef map <NetCommandID, CNetworkCommand *> CommandMap;

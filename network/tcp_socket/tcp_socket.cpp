@@ -93,15 +93,15 @@ int CTcpSocket::Send(const void *pData, unsigned int nLen)
 	return -1;
 }
 
-int CTcpSocket::Recv(char * pData, unsigned int nLen)
+int CTcpSocket::Recv(void * buffer, uint maxByteCount)
 {
-	if ( 0 == nLen )
+	if (0 == maxByteCount)
 		return -1;
 
-	if ( NULL == pData )
+	if (NULL == buffer)
 		return -1;
 
-	return recv( m_socket, pData, nLen, 0 );
+	return recv(m_socket, (char *)buffer, maxByteCount, 0);
 }
 
 void CTcpSocket::Close()
