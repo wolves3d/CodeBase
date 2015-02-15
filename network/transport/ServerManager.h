@@ -39,7 +39,7 @@ class CServerManager
 {
 public:
 	CServerManager(IServerManagerDelegate * delegate)
-		: m_delegate(delegate)
+		, m_delegate(delegate)
 	{
 	}
 
@@ -58,7 +58,7 @@ public:
 		// iterate accepted client list
 		CheckListenThread();
 
-		m_commandMgr.m_packetMgr->OnUpdate();
+		m_commandMgr.OnUpdate();
 
 		return true;
 		// or false for program stop
@@ -94,8 +94,8 @@ private:
 
 					m_delegate->OnClientConnected(clientSocket);
 				
-					CNetworkCommand * command = m_commandMgr.FindCommand("ping");
-					m_commandMgr.SendCommand(clientSocket, command);
+//					CNetworkCommand * command = m_commandMgr.FindCommand("ping");
+	//				m_commandMgr.SendCommand(clientSocket, command);
 
 
 					// restart task

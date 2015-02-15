@@ -2,61 +2,87 @@
 #include "CommandManager.h"
 
 
-CCommandManager::CCommandManager()
+CCommandManager::CCommandManager(ITransportPacket * packet)
+	: m_packet(packet)
 {
 	m_packetMgr = NEW CPacketManager();
 	m_packetMgr->SetDelegate(this);
-}
 
+	const uint maxHandlerCount = 256;
+	m_handlerList.reserve(maxHandlerCount);
 
-bool CCommandManager::RegisterCommand(CNetworkCommand * command)
-{
-	if (NULL == command)
+	for (uint i = 0; i < maxHandlerCount; ++i)
 	{
-		FAIL("Invalid command pointer");
-		return false;
-	}
-
-	NetCommandID commandID = command->UniqueID();
-	
-	
-	if (NULL == FindCommand(commandID, true))
-	{
-		m_commandMap[commandID] = command;
-		return true;
-	}
-	else
-	{
-		FAIL("Command already registred");
-		return false;
+		m_handlerList.push_back(NULL);
 	}
 }
 
 
-CNetworkCommand * CCommandManager::FindCommand(NetCommandID commandID, bool allowFail)
+bool CCommandManager::CheckHandlerID(uint handlerID)
 {
-	CommandMap::iterator it = m_commandMap.find(commandID);
+	return ((handlerID > 0) && (handlerID < m_handlerList.capacity()));
+}
 
-	
-	if (m_commandMap.end() != it)
+
+ICommandHandler * CCommandManager::GetHandler(uint handlerID)
+{
+	if (true == CheckHandlerID(handlerID))
 	{
-		return (it->second);
-	}
-	else if (false == allowFail)
-	{
-		FAIL("cannot find command");
+		if (handlerID < m_handlerList.size())
+		{
+			return m_handlerList[handlerID];
+		}
 	}
 
 	return NULL;
 }
 
-	
-void CCommandManager::SendCommand(CTcpSocket * dstClient, CNetworkCommand * command)
-{
-	BufferObject argBuffer(256);
 
-	uint cmdSize = command->OnSend(&argBuffer, dstClient);
-	dstClient->Send(argBuffer.GetConstPointer(), cmdSize);
+uint CCommandManager::RegisterHandler(ICommandHandler * handler)
+{
+	if (NULL == handler)
+	{
+		FAIL("Invalid handler pointer");
+		return 0;
+	}
+
+	int handlerID = handler->GetCommandID();
+	
+	if (false == CheckHandlerID(handlerID))
+	{
+		FAIL("Bad handler ID!");
+		return 0;
+	}
+
+	if (NULL != GetHandler(handlerID))
+	{
+		FAIL("Command already registred");
+		return 0;
+	}
+	
+	m_handlerList[handlerID] = handler;
+	printf("handler registred (%s) with id (%d)\n", handler->GetName(), handlerID);
+
+	return handlerID;
+}
+
+	
+void CCommandManager::SendCommand(IAbstractSocket * socket, uint cmdID, void * data, uint byteCount)
+{
+	const uint headerSize = m_packet->GetHeaderSize();
+	const uint packetSize = (headerSize + byteCount);
+
+	BufferObject argBuffer(256);
+	if (argBuffer.GetSize() >= packetSize)
+	{
+		char * buf = (char *)argBuffer.GetPointer();
+		m_packet->FillHeader(buf, cmdID, byteCount);
+
+		// bound checked
+		memcpy(buf + headerSize, data, byteCount);
+
+		socket->Send(buf, packetSize);
+	}
 }
 
 
@@ -65,9 +91,27 @@ void CCommandManager::OnUnknownCommand()
 }
 
 
-void CCommandManager::OnIncomingPacket(CTcpSocket * srcClient, BufferObject * data)
+void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, BufferObject * data)
 {
+// 	uint cmdID = buffer[0];
+// 	uint argSize = buffer[1];
 
+	const byte * packetBytes = (const byte *)data->GetConstPointer();
+	uint handlerID = m_packet->GetCommandID(packetBytes);
+	ICommandHandler * handler = GetHandler(handlerID);
+
+	if (NULL == handler)
+	{
+		FAIL("command handler not found!");
+		return;
+	}
+
+	const uint argByteCount = m_packet->GetArgumentSize(packetBytes);
+	const byte * argData = (argByteCount > 0)
+		? (packetBytes + m_packet->GetHeaderSize())
+		: NULL;
+
+	handler->OnResponse(argData, argByteCount, socket);
 }
 
 void CCommandManager::OnClientLost(CTcpSocket * srcClient)

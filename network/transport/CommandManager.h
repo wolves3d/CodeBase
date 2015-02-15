@@ -27,6 +27,14 @@ public:
 };
 
 
+struct ICommandHandler
+{
+	virtual const char * GetName() const = 0;
+	virtual uint GetCommandID() const = 0;
+	virtual void OnResponse(const byte * data, uint size, IAbstractSocket * socket) = 0;
+};
+
+
 class CCommandManager
 	: public IPacketManagerDelegate
 {
@@ -34,33 +42,37 @@ public:
 
 	// IPacketManagerDelegate
 
-	virtual void OnIncomingPacket(CTcpSocket * srcClient, BufferObject * data);
+	virtual void OnIncomingPacket(IAbstractSocket * socket, BufferObject * data);
 	virtual void OnClientLost(CTcpSocket * srcClient);
 	
 	virtual void OnSoftTimeout(float time, CTcpSocket * client, CNetworkCommand * command) {};
 	virtual void OnHardTimeout(float time, CTcpSocket * client, CNetworkCommand * command) {};
 
 	// CCommandManager
-	CCommandManager();
+	CCommandManager(ITransportPacket * packet);
 
 	/// Регистрация команды
-	bool RegisterCommand(CNetworkCommand * command);
-
-	CNetworkCommand * FindCommand(NetCommandID commandID, bool allowFail = false);
+	//bool RegisterCommand(CNetworkCommand * command);
+	uint RegisterHandler(ICommandHandler * handler);
+	ICommandHandler * GetHandler(uint handlerID);
 
 	/// Кладет команду в другой поток и тут же возвращает управление
-	void SendCommand(CTcpSocket * dstClient, CNetworkCommand * command);
+	void SendCommand(IAbstractSocket * socket, uint cmdID, void * data = NULL, uint byteCount = 0);
 
 	/// Получена входящая команда от клиента
 	void OnUnknownCommand();
 
+	void OnUpdate() { m_packetMgr->OnUpdate(m_packet); }
 
+	CPacketManager * GetPacketManager() { return m_packetMgr; }
 
-//private:
+private:
+
+	bool CheckHandlerID(uint handlerID);
+
 	CPacketManager * m_packetMgr;
-
-	typedef map <NetCommandID, CNetworkCommand *> CommandMap;
-	CommandMap m_commandMap;
+	ITransportPacket * m_packet;
+	vector <ICommandHandler *> m_handlerList;
 };
 
 //==============================================================================
