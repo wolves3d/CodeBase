@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "CodeBase.h"
 #include "tcp_socket.h"
 
 
@@ -48,6 +48,9 @@ int CTcpSocket::Accept(CTcpSocket * outClient)
 	int addrLen = sizeof(outClient->m_addr);
 	outClient->m_socket = accept(m_socket, (sockaddr *) &(outClient->m_addr), &addrLen);
 
+	u_long value = 1;
+	ioctlsocket(outClient->m_socket, FIONBIO, &value); // O_NONBLOCK
+
 	return 1;
 }
 
@@ -60,9 +63,28 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 
 	m_socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 
+	u_long value = 1;
+	ioctlsocket(m_socket, FIONBIO, &value); // O_NONBLOCK
+
 	m_addr.sin_family		= AF_INET;
 	m_addr.sin_addr.s_addr	= inet_addr(pIPaddr);
 	m_addr.sin_port			= htons( nPort );
+
+	/*
+	DWORD dwValue = 1;
+
+	if (SOCKET_ERROR == setsockopt(m_socket, SOL_SOCKET, TCP_NODELAY, (char *)&dwValue, sizeof(dwValue)))
+	{
+		printf("Set TCP_NODELAY: failed\n");
+		//wprintf(L"setsockopt for SO_KEEPALIVE failed with error: %u\n", WSAGetLastError());
+	}
+	else
+	{
+		printf("Set TCP_NODELAY: ON\n");
+	}
+		*/
+
+
 
 	printf( "Connecting to %s port %d... ", pIPaddr, nPort );
 
