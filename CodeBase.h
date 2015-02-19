@@ -3,6 +3,33 @@
 #ifndef __Base_h_included__
 #define __Base_h_included__
 
+
+#ifdef WIN32
+
+#define _WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <assert.h>
+//#include <strsafe.h>
+
+#else
+
+#include <unistd.h>
+
+#endif
+
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+
+#include <string>  /* String function definitions */
+#include <vector>
+#include <map>
+#include <queue>
+using namespace std;
+
+
+
 /** @defgroup base_types Base Types
 *  Базовые типы
 *  @{
@@ -93,6 +120,10 @@ enum ETypeID
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+#define FAIL(X) assert(false)
+#define SAFE_CAST(TYPE, OBJ) dynamic_cast <TYPE> (OBJ)
+
 
 #include <API/ISystem.h>
 //#include <Memory.h>
