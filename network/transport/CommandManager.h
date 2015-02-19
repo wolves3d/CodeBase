@@ -5,10 +5,12 @@
 
 // forward declaration
 class CNetworkCommand;
+class CCommandManager;
 
 #include "PacketManager.h"
 
 
+/*
 typedef string NetCommandID;
 #define HEADER "HE"
 
@@ -25,13 +27,22 @@ public:
 		return dstData->Write(0, HEADER, sizeof(HEADER));
 	}
 };
+*/
 
+
+struct IResponseHandler
+{
+	virtual const char * GetName() const = 0;
+	virtual uint GetCommandID() const = 0;
+	virtual void OnResponse(const byte * data, uint size, IAbstractSocket * socket, CCommandManager * mgr) = 0;
+};
 
 struct ICommandHandler
 {
 	virtual const char * GetName() const = 0;
 	virtual uint GetCommandID() const = 0;
-	virtual void OnResponse(const byte * data, uint size, IAbstractSocket * socket) = 0;
+	virtual uint GetArgSize() const { return 0; }
+	virtual uint FillData(void * buffer, uint maxByteCount) { return 0;  }
 };
 
 
@@ -53,12 +64,13 @@ public:
 
 	/// Регистрация команды
 	//bool RegisterCommand(CNetworkCommand * command);
-	uint RegisterHandler(ICommandHandler * handler);
-	ICommandHandler * GetHandler(uint handlerID);
+	uint RegisterHandler(IResponseHandler * handler);
+	IResponseHandler * GetHandler(uint handlerID);
 
 	/// Кладет команду в другой поток и тут же возвращает управление
-	void SendCommand(IAbstractSocket * socket, uint cmdID, void * data = NULL, uint byteCount = 0);
-
+	void SendCommand(IAbstractSocket * socket, uint cmdID, void * data, uint byteCount);
+	void SendCommand(IAbstractSocket * socket, ICommandHandler * handler);
+	
 	/// Получена входящая команда от клиента
 	void OnUnknownCommand();
 
@@ -72,7 +84,7 @@ private:
 
 	CPacketManager * m_packetMgr;
 	ITransportPacket * m_packet;
-	vector <ICommandHandler *> m_handlerList;
+	vector <IResponseHandler *> m_handlerList;
 };
 
 //==============================================================================

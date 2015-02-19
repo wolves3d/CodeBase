@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "CodeBase.h"
 #include "CommandManager.h"
 
 
@@ -24,7 +24,7 @@ bool CCommandManager::CheckHandlerID(uint handlerID)
 }
 
 
-ICommandHandler * CCommandManager::GetHandler(uint handlerID)
+IResponseHandler * CCommandManager::GetHandler(uint handlerID)
 {
 	if (true == CheckHandlerID(handlerID))
 	{
@@ -38,7 +38,7 @@ ICommandHandler * CCommandManager::GetHandler(uint handlerID)
 }
 
 
-uint CCommandManager::RegisterHandler(ICommandHandler * handler)
+uint CCommandManager::RegisterHandler(IResponseHandler * handler)
 {
 	if (NULL == handler)
 	{
@@ -83,6 +83,33 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, uint cmdID, void * d
 
 		socket->Send(buf, packetSize);
 	}
+	else
+	{
+		FAIL("buffer too small");
+	}
+}
+
+
+void CCommandManager::SendCommand(IAbstractSocket * socket, ICommandHandler * handler)
+{
+	const uint cmdID = handler->GetCommandID();
+	const uint byteCount = handler->GetArgSize();
+	const uint headerSize = m_packet->GetHeaderSize();
+	const uint packetSize = (headerSize + byteCount);
+
+	BufferObject argBuffer(256);
+	if (argBuffer.GetSize() >= packetSize)
+	{
+		char * buf = (char *)argBuffer.GetPointer();
+		m_packet->FillHeader(buf, cmdID, byteCount);
+		handler->FillData(buf + headerSize, byteCount);
+		
+		SendCommand(socket, cmdID, buf, byteCount);
+	}
+	else
+	{
+		FAIL("buffer too small");
+	}
 }
 
 
@@ -98,7 +125,7 @@ void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, BufferObject * 
 
 	const byte * packetBytes = (const byte *)data->GetConstPointer();
 	uint handlerID = m_packet->GetCommandID(packetBytes);
-	ICommandHandler * handler = GetHandler(handlerID);
+	IResponseHandler * handler = GetHandler(handlerID);
 
 	if (NULL == handler)
 	{
@@ -111,7 +138,7 @@ void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, BufferObject * 
 		? (packetBytes + m_packet->GetHeaderSize())
 		: NULL;
 
-	handler->OnResponse(argData, argByteCount, socket);
+	handler->OnResponse(argData, argByteCount, socket, this);
 }
 
 void CCommandManager::OnClientLost(CTcpSocket * srcClient)

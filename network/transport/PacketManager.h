@@ -88,7 +88,10 @@ public:
 			}
 			else
 			{
-				FAIL("bad packet header");
+				if (-1 != rcvd)
+				{
+					FAIL("bad packet header");
+				}
 			}
 		}
 	}
