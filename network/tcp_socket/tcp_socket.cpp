@@ -123,7 +123,8 @@ int CTcpSocket::Recv(void * buffer, uint maxByteCount)
 	if (NULL == buffer)
 		return -1;
 
-	return recv(m_socket, (char *)buffer, maxByteCount, 0);
+	int res = recv(m_socket, (char *)buffer, maxByteCount, 0);
+	return res;
 }
 
 void CTcpSocket::Close()

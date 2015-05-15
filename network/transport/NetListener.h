@@ -45,6 +45,7 @@ public:
 
 	bool Init(int portToListen)
 	{
+		printf("Server listening on port %d\n", portToListen);
 		m_serverSocket.Init(portToListen);
 
 		m_listenThread.Init();
