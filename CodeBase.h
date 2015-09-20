@@ -169,6 +169,11 @@ struct TImage
 	byte *		pData;
 };
 
+
+class CBaseObject
+{
+};
+
 ///////////////////////////////////////////////////////////////////////////
 /*
 inline const char * Va( const char * szFmt, ... )

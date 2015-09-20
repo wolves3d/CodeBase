@@ -14,9 +14,10 @@ struct ITransportPacket
 	virtual uint GetArgumentSize(const void * header) = 0;
 	virtual bool CheckPacket(const void * packet, uint byteCount) = 0;
 
-	virtual void FillHeader(void * dst, uint cmdID, uint byteCount) = 0;
+	virtual void FillHeader(void * dst, uint cmdID, uint cmdTag, uint byteCount) = 0;
 
 	virtual uint GetCommandID(const void * header) = 0;
+	virtual uint GetCommandTag(const void * header) = 0;
 };
 
 
@@ -61,30 +62,43 @@ public:
 	void OnUpdate(ITransportPacket * packet)
 	{
 		BufferObject buffer;
-		buffer.Init(256);
+		buffer.Init(1024);
 
 		for (uint i = 0; i < m_socketList.size(); ++i)
 		{
 			IAbstractSocket * socket = m_socketList[i];
 
-			const int headerSize = packet->GetHeaderSize();
+			const uint headerSize = packet->GetHeaderSize();
 			byte * buf = (byte *)buffer.GetPointer();
 
 			int rcvd = socket->Recv(buf, headerSize);
 			if (rcvd == headerSize)
 			{
 				const uint dataSize = packet->GetArgumentSize(buf);
-				if (0 != dataSize)
+//				if (0 != dataSize)
 				{
-					buf += headerSize;
-
-					if (dataSize != socket->Recv(buf, dataSize))
+					if ((dataSize + headerSize) < buffer.GetSize())
 					{
-						FAIL("invalid packet data size");
+						buf += headerSize;
+
+						bool packetIsOK = (0 == dataSize)
+							? true // No data at all, only header is OK
+							: (dataSize == socket->Recv(buf, dataSize));
+
+						if (packetIsOK)
+						{
+							m_delegate->OnIncomingPacket(socket, &buffer);
+						}
+						else
+						{
+							FAIL("invalid packet data size");
+						}
+					}
+					else
+					{
+						FAIL("too small buffer!");
 					}
 				}
-
-				m_delegate->OnIncomingPacket(socket, &buffer);
 			}
 			else
 			{
