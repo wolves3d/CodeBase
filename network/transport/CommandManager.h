@@ -120,6 +120,14 @@ struct INetCommand : IResponseHandler
 	virtual uint GetResponseID() const { return RSP_ID; } \
 	virtual uint OnFillData(void * buffer, uint maxByteCount); \
 
+
+#define REQUEST_HANDLER_DECL(REQUEST_NAME, COMMAND_ID, RESPONSE_ID) \
+class REQUEST_NAME : public INetCommand \
+{ \
+REQUEST_HANDLER_BODY(REQUEST_NAME, COMMAND_ID, RESPONSE_ID) \
+};
+
+
 /*
 #define REQUEST_HANDLER_DECL(REQUEST_NAME, COMMAND_ID, RESPONSE_ID) \
 class REQUEST_NAME : public INetCommand \
@@ -131,6 +139,7 @@ class REQUEST_NAME : public INetCommand \
 	virtual uint OnFillData(void * buffer, uint maxByteCount); \
 };
 */
+
 
 
 class CCommandManager
