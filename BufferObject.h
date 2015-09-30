@@ -10,22 +10,22 @@ class BufferObject
 public:
 
 	BufferObject()
-		: m_bufferPointer(NULL)
-		, m_bufferSize(0)
+		: m_bufferSize(0)
+		, m_bufferPointer(NULL)
 	{
 	}
 
 	BufferObject(size_t size)
 	{
-		m_bufferPointer = NULL;
 		m_bufferSize = 0;
+		m_bufferPointer = NULL;
 		Init(size);
 	}
 
 	BufferObject(const BufferObject & sourceObject)
 	{
-		m_bufferPointer = NULL;
 		m_bufferSize = 0;
+		m_bufferPointer = NULL;
 		Init(sourceObject);
 	}
 
