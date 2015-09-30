@@ -5,7 +5,7 @@
 class BufferObject
 {
 	size_t m_bufferSize;
-	void * m_bufferPointer;
+	void *m_bufferPointer;
 
 public:
 
@@ -16,14 +16,16 @@ public:
 	}
 
 	BufferObject(size_t size)
-		: BufferObject()
 	{
+		m_bufferPointer = NULL;
+		m_bufferSize = 0;
 		Init(size);
 	}
 
 	BufferObject(const BufferObject & sourceObject)
-		: BufferObject()
 	{
+		m_bufferPointer = NULL;
+		m_bufferSize = 0;
 		Init(sourceObject);
 	}
 

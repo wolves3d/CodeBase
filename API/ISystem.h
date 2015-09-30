@@ -251,11 +251,14 @@ extern ISystem * g_pSystem;
 
 typedef ISystem * (*PROC_CREATESYSTEM)();
 
+#ifdef WIN32
+
 extern "C"
 {
 	__declspec( dllexport ) ISystem * CreateSystem();
 }
 
+#endif // #ifdef WIN32
 
 /**
 *
