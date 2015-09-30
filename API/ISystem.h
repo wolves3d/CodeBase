@@ -24,12 +24,12 @@ struct ITestRes;
 
 enum EResult
 {
-	R_OK = 0,			// no error
-	R_GENERIC_ERROR,	// unknown
-	R_OUT_OF_MEMORY,	//
-	R_INVALID_ARG,
-	R_INVALID_OP,
-	R_FILE_ERROR
+	ER_OK = 0,			// no error
+	ER_GENERIC_ERROR,	// unknown
+	ER_OUT_OF_MEMORY,	//
+	ER_INVALID_ARG,
+	ER_INVALID_OP,
+	ER_FILE_ERROR
 };
 
 /*
@@ -63,6 +63,9 @@ struct ILexer
 //	Desc:
 ================================================================================
 */
+
+#ifdef WIN32
+
 struct IEasyWin
 {
 	virtual bool		Create		( HINSTANCE hInst ) = 0;
@@ -73,6 +76,8 @@ struct IEasyWin
 	virtual void		GetSize		( int * pOutWidth, int * pOutHeight ) const = 0;
 	virtual void		SetTitle	( const char *szTitle ) = 0;
 };
+
+#endif // #ifdef WIN32
 
 
 //==============================================================================
