@@ -4,7 +4,7 @@
 //==============================================================================
 
 #include "CommandManager.h"
-#include "thread.h"
+#include "CodeBase/thread.h"
 
 class ListenTask : public CThreadTask
 {

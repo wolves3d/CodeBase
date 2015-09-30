@@ -3,7 +3,7 @@
 #define __PacketManager_h_included__
 //==============================================================================
 
-#include "tcp_socket.h"
+#include "CodeBase/network/tcp_socket/tcp_socket.h"
 
 
 struct ITransportPacket

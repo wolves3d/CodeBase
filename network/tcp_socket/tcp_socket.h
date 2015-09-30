@@ -7,7 +7,7 @@
 #include <winsock2.h>
 #endif // WIN32
 
-#include "AbstractSocket.h"
+#include "CodeBase/network/AbstractSocket.h"
 
 
 class CTcpSocket : public IAbstractSocket

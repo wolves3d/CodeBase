@@ -128,9 +128,9 @@ void AssertMsg(const char * szFile, int nLine, const char * szString);
 #define SAFE_CAST(TYPE, OBJ) dynamic_cast <TYPE> (OBJ)
 
 
-#include <API/ISystem.h>
+#include <CodeBase/API/ISystem.h>
 //#include <Memory.h>
-#include <BufferObject.h>
+#include <CodeBase/BufferObject.h>
 
 #define NEW new
 #define DEL(X) { if (X) delete (X); (X) = NULL; }
