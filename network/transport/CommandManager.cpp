@@ -2,9 +2,15 @@
 #include "CommandManager.h"
 
 
-CCommandManager::CCommandManager(ITransportPacket * packet)
+// for debug
+string u_string_format(const char *fmt, ...);
+
+
+CCommandManager::CCommandManager(ITransportPacket * packet, bool singleCommandMode)
 	: m_packet(packet)
 	, m_commandCounter(0)
+	, m_sentCommandID(0)
+	, m_singleCommandMode(singleCommandMode)
 {
 	m_packetMgr = NEW CPacketManager();
 	m_packetMgr->SetDelegate(this);
@@ -77,57 +83,111 @@ void CCommandManager::UnregisterHandler(uint handlerID)
 	}
 }
 
-/*
-void CCommandManager::SendCommand(IAbstractSocket * socket, uint cmdID, void * data, uint byteCount)
+
+uint CCommandManager::GetNextCmdNumber()
 {
-	const uint headerSize = m_packet->GetHeaderSize();
-	const uint packetSize = (headerSize + byteCount);
+	++m_commandCounter;
 
-	BufferObject argBuffer(256);
-	if (argBuffer.GetSize() >= packetSize)
+	if (m_commandCounter >= 0xFF)
 	{
-		char * buf = (char *)argBuffer.GetPointer();
-		m_packet->FillHeader(buf, cmdID, byteCount);
-
-		// bound checked
-		memcpy(buf + headerSize, data, byteCount);
-
-		socket->Send(buf, packetSize);
+		m_commandCounter = 1;
 	}
-	else
-	{
-		FAIL("buffer too small");
-	}
-}*/
+
+	return m_commandCounter;
+}
 
 
 void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * command)
 {
-	const uint cmdID = command->GetCommandID();
 	const uint byteCount = 256;
-	const uint headerSize = m_packet->GetHeaderSize();
-	const uint packetSize = (headerSize + byteCount);
-	uint commandUniqueID = 0;
+	static byte staticBuffer[byteCount];
 
-	if (NULL != command->GetResponseID())
+	const uint cmdID = command->GetCommandID();
+	const uint headerSize = m_packet->GetHeaderSize();
+
+	byte * buf = staticBuffer;
+	const uint dataSize = command->OnFillData(buf + headerSize, byteCount - headerSize);
+	const uint packetSize = (headerSize + dataSize);
+	
+	// fill packet header ------------------------------------------------------
+
+	uint z = command->GetResponseID();
+
+	uint commandUniqueID = (NULL != command->GetResponseID())
+		? GetNextCmdNumber()
+		: 0;
+
+	m_packet->FillHeader(buf, cmdID, commandUniqueID, dataSize);
+
+	// send to socket or save in queue -----------------------------------------
+
+	if ((0 == m_sentCommandID) && (0 == m_packetQueue.size()))
 	{
-		commandUniqueID = GetNextCmdNumber();
-		AddUniqueHandler(commandUniqueID, socket, command); // FIXME add timeout to handler	
+		SendPacket(
+			&TDelayedPacket(socket, command, commandUniqueID, buf, packetSize));
 	}
+	else
+	{
+		// FIXME: socket may be lost, clean on socket lost
+
+		TDelayedPacket * delayedPacket = NEW TDelayedPacket(
+			socket, command, commandUniqueID, buf, packetSize);
+
+		m_packetQueue.push_back(delayedPacket);
+
+		printf("command queue inc: %d\n", m_packetQueue.size());
+	}
+}
+
+
+void CCommandManager::SendPacket(TDelayedPacket *packet)
+{
+	const uint requestID = packet->command->GetCommandID();
+
+	packet->socket->Send(
+		packet->packetData,
+		packet->packetSize);
+
+	if (true == m_singleCommandMode)
+	{
+		// FIXME: socket with command may be lost
+		DEBUG_ASSERT(0 != requestID);
+		m_sentCommandID = requestID;
+	}
+
 
 	// FIXME: WARNING! Must link socket and all associated handlers
 	// to kill all handlers on socket (abnormal) shutdown
-
-	BufferObject argBuffer(packetSize);
+	if (0 != packet->uniqueHandlerTag)
 	{
-		char * buf = (char *)argBuffer.GetPointer();
-		
-		uint dataSize = command->OnFillData(buf + headerSize, byteCount);
+		AddUniqueHandler(
+			packet->uniqueHandlerTag,
+			packet->socket,
+			packet->command); // FIXME add (timeout & socketLost) to handler	
+	}
+	else
+	{
+		DEL(packet->command);
+	}
+}
 
-		// insert commandUniqueID in header!!!
-		m_packet->FillHeader(buf, cmdID, commandUniqueID, dataSize);
-		
-		socket->Send(buf, headerSize + dataSize);
+
+void CCommandManager::OnUpdate()
+{
+	m_packetMgr->OnUpdate(m_packet);
+
+	if (m_packetQueue.size() > 0)
+	{
+		if (0 == m_sentCommandID)
+		{
+			TDelayedPacket * packetRecord = m_packetQueue[0];
+			SendPacket(packetRecord);
+			
+			m_packetQueue.erase(m_packetQueue.begin());
+			DEL(packetRecord);
+
+			printf("command queue dec: %d\n", m_packetQueue.size());
+		}
 	}
 }
 
@@ -137,19 +197,24 @@ void CCommandManager::OnUnknownCommand()
 }
 
 
-void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, BufferObject * data)
+void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, const byte *data, size_t dataSize)
 {
-	const byte * packetBytes = (const byte *)data->GetConstPointer();
+	const byte * packetBytes = data;// (const byte *)data->GetConstPointer();
 	uint handlerID = m_packet->GetCommandID(packetBytes);
 	uint tag = m_packet->GetCommandTag(packetBytes);
 
-	IResponseHandler * handler = (0 == tag)
+	IResponseHandler * uniqueHandler = (0 != tag)
+		? FindHandler(tag, socket)
+		: NULL;
+
+	IResponseHandler * handler = (NULL == uniqueHandler)
 		? GetHandler(handlerID)
-		: FindHandler(tag, socket);
+		: uniqueHandler;
 
 	if (NULL == handler)
 	{
-		FAIL("command handler not found!");
+		string errorStr = u_string_format("command handler (%d tag:%d) not found!", handlerID, tag);
+		FAIL(errorStr.c_str());
 		return;
 	}
 
@@ -160,6 +225,16 @@ void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, BufferObject * 
 
 	handler->OnResponse(argData, argByteCount, socket, this);
 	handler->OnCallback(argData, argByteCount, socket, this);
+
+	if (NULL != uniqueHandler)
+	{
+		RemoveUniqueHandler(socket, tag);
+	}
+
+	if (handlerID == m_sentCommandID)
+	{
+		m_sentCommandID = 0;
+	}
 }
 
 void CCommandManager::OnClientLost(CTcpSocket * srcClient)
@@ -215,14 +290,27 @@ INetCommand * CCommandManager::FindHandler(uint uniqueCommandID, IAbstractSocket
 		}
 	}
 
-	DEBUG_MSG("response handler not found");
+
 	return NULL;
 }
 
 
 void CCommandManager::RemoveUniqueHandler(IAbstractSocket * associatedSocket, uint uniqueCommandID)
 {
-	FAIL("implement me");
+	HandlerMap * handlerMap = GetHandlerMap(associatedSocket);
+
+	if (NULL != handlerMap)
+	{
+		map <uint, INetCommand *>::const_iterator it = handlerMap->m_uniqueHandlerList.find(uniqueCommandID);
+
+		if (handlerMap->m_uniqueHandlerList.end() != it)
+		{
+			handlerMap->m_uniqueHandlerList.erase(it);
+			return;
+		}
+	}
+
+	DEBUG_MSG("unique handler not found");
 }
 
 void CCommandManager::RemoveUniqueHandlers(IAbstractSocket * associatedSocket)

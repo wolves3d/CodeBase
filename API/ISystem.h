@@ -294,8 +294,8 @@ struct ILibrary
 // 
 // #else
 
-#define DEBUG_ASSERT( X )
-#define DEBUG_MSG( X ) assert(!(X))
+#define DEBUG_ASSERT( X ) if ( !( X ) ) AssertMsg( __FILE__, __LINE__, #X );
+#define DEBUG_MSG( X ) AssertMsg( __FILE__, __LINE__, #X );
 
 //#endif // #ifdef _DEBUG
 

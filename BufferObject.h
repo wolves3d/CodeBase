@@ -21,6 +21,12 @@ public:
 		Init(size);
 	}
 
+	BufferObject(const BufferObject & sourceObject)
+		: BufferObject()
+	{
+		Init(sourceObject);
+	}
+
 	virtual ~BufferObject()
 	{
 		Release();
@@ -28,7 +34,9 @@ public:
 
 	void Release()
 	{
-		if (NULL != m_bufferPointer) {
+		if (NULL != m_bufferPointer)
+		{
+			DEBUG_ASSERT(0 != m_bufferSize);
 			
 			free(m_bufferPointer);
 			m_bufferPointer = NULL;
@@ -59,8 +67,7 @@ public:
 	{
 		if (true == Init(size))
 		{
-			memcpy(m_bufferPointer, dataSource, size);
-			return true;
+			return (Write(0, dataSource, size) == size);
 		}
 
 		return false;
@@ -78,11 +85,11 @@ public:
 	const void *	GetConstPointer	() const	{ return m_bufferPointer; }
 
 
-	uint Write(uint offset, void * dataSource, uint sizeInBytes)
+	uint Write(uint offset, const void * dataSource, uint sizeInBytes)
 	{
 		if (NULL != dataSource)
 		{
-			if (m_bufferSize > (offset + sizeInBytes))
+			if (m_bufferSize >= (offset + sizeInBytes))
 			{
 				if (sizeInBytes > 0)
 				{
@@ -93,12 +100,12 @@ public:
 			}
 			else
 			{
-				// buffer overflow!
+				FAIL("buffer overflow!");
 			}
 		}
 		else
 		{
-			// invalid data source!
+			FAIL("invalid data source!");
 		}
 		
 		return 0;

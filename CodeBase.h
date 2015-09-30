@@ -121,7 +121,10 @@ enum ETypeID
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define FAIL(X) assert(false)
+
+void AssertMsg(const char * szFile, int nLine, const char * szString);
+
+#define FAIL(X) AssertMsg(__FILE__, __LINE__, X);
 #define SAFE_CAST(TYPE, OBJ) dynamic_cast <TYPE> (OBJ)
 
 

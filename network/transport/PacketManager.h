@@ -24,7 +24,7 @@ struct ITransportPacket
 struct IPacketManagerDelegate
 {
 	/// обработчик входящих пакетов
-	virtual void OnIncomingPacket(IAbstractSocket * socket, BufferObject * data) = 0;
+	virtual void OnIncomingPacket(IAbstractSocket * socket, const byte *data, size_t dataSize) = 0;
 
 	virtual void OnClientLost(CTcpSocket * srcClient) = 0;
 
@@ -40,7 +40,34 @@ class CPacketManager
 {
 private:
 	IPacketManagerDelegate * m_delegate;
-	vector <IAbstractSocket *> m_socketList;
+
+
+	struct TSocketDesc
+	{
+		TSocketDesc(IAbstractSocket * s)
+			: socket(s)
+		{
+			ResetBuffer();
+		}
+
+		void ResetBuffer()
+		{
+			writtenBytes = 0;
+			targetByteCount = 0;
+		}
+
+		IAbstractSocket *socket;
+		size_t writtenBytes;
+		size_t targetByteCount;
+
+		enum { READ_BUFFER_SIZE = 1024} ;
+		byte buffer[READ_BUFFER_SIZE];
+	};
+
+	vector <TSocketDesc> m_socketList;
+
+	byte m_readBuffer;
+	byte m_bufferSize;
 
 public:
 
@@ -53,7 +80,8 @@ public:
 
 	void AddClent(IAbstractSocket * socket)
 	{
-		m_socketList.push_back(socket);
+		m_socketList.push_back(
+			TSocketDesc(socket));
 	}
 
 	void RemoveClent(CTcpSocket * clientSocket);
@@ -61,48 +89,59 @@ public:
 	/// обходим все сокеты, ищем полученные данные, callbacks
 	void OnUpdate(ITransportPacket * packet)
 	{
-		BufferObject buffer;
-		buffer.Init(1024);
+		//BufferObject buffer;
+		//buffer.Init(1024);
 
 		for (uint i = 0; i < m_socketList.size(); ++i)
 		{
-			IAbstractSocket * socket = m_socketList[i];
+			TSocketDesc & desc = m_socketList[i];
+			IAbstractSocket * socket = desc.socket;
 
 			const uint headerSize = packet->GetHeaderSize();
-			byte * buf = (byte *)buffer.GetPointer();
+			size_t targetSize = 0;
 
-			int rcvd = socket->Recv(buf, headerSize);
-			if (rcvd == headerSize)
+			if (0 == desc.targetByteCount)
 			{
-				const uint dataSize = packet->GetArgumentSize(buf);
-//				if (0 != dataSize)
+				// header wasn't filled yet
+				targetSize = (headerSize - desc.writtenBytes);
+			}
+			else
+			{
+				// we've already got header, so read arguments
+				targetSize = ((headerSize + desc.targetByteCount) - desc.writtenBytes);
+			}
+
+			// Read header
+			byte * buf = (desc.buffer + desc.writtenBytes);
+			const int rcvd = socket->Recv(buf, targetSize);
+
+			if (rcvd > 0)
+			{
+				desc.writtenBytes += rcvd;
+			}
+
+			if (rcvd == targetSize)
+			{
+				bool packetRcvd = true;
+
+				if (0 == desc.targetByteCount)
 				{
-					if ((dataSize + headerSize) < buffer.GetSize())
-					{
-						buf += headerSize;
+					// on header recvd
+					desc.targetByteCount = packet->GetArgumentSize(buf);
+					//const uint dataSize = packet->GetArgumentSize(buf);
 
-						bool packetIsOK = (0 == dataSize)
-							? true // No data at all, only header is OK
-							: (dataSize == socket->Recv(buf, dataSize));
+					packetRcvd = (0 == desc.targetByteCount);
+				}
 
-						if (packetIsOK)
-						{
-							m_delegate->OnIncomingPacket(socket, &buffer);
-						}
-						else
-						{
-							FAIL("invalid packet data size");
-						}
-					}
-					else
-					{
-						FAIL("too small buffer!");
-					}
+				if (true == packetRcvd)
+				{
+					m_delegate->OnIncomingPacket(socket, desc.buffer, desc.writtenBytes);
+					desc.ResetBuffer();
 				}
 			}
 			else
 			{
-				if (-1 != rcvd)
+				if ((-1 != rcvd) && (0 != rcvd))
 				{
 					FAIL("bad packet header");
 				}

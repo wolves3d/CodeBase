@@ -28,7 +28,7 @@ bool CSerialPort::Open(const char * portName)
 			0,                                  // the COM-port can't be shared
 			NULL,                               // the object gets a default security.
 			OPEN_EXISTING,                      // Specify which action to take on file. 
-			0 /*FILE_FLAG_OVERLAPPED*/,				// default.
+			0 /* FILE_ATTRIBUTE_NORMAL /*FILE_FLAG_OVERLAPPED*/,				// default.
 			NULL);
 
 		if (INVALID_HANDLE_VALUE != m_port)
@@ -44,6 +44,39 @@ bool CSerialPort::Open(const char * portName)
 			
 				// Set current configuration of serial communication port.
 				SetCommState(m_port, &m_config);
+
+
+
+
+
+
+				int sermemsize = 64;
+				
+				SetupComm(m_port, sermemsize, sermemsize);  /* Set buffer size. */
+				PurgeComm(m_port, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_RXCLEAR);
+
+				COMMTIMEOUTS ct;
+				memset(&ct, 0, sizeof (ct));
+// 				ct.ReadIntervalTimeout = MAXDWORD;
+// 				ct.ReadTotalTimeoutMultiplier = 0;
+// 				ct.ReadTotalTimeoutConstant = 0;
+
+				ct.ReadIntervalTimeout = 1000;
+				ct.ReadTotalTimeoutMultiplier = 10;
+				ct.ReadTotalTimeoutConstant = 100;
+
+				ct.WriteTotalTimeoutMultiplier = 20000 / m_config.BaudRate;
+				ct.WriteTotalTimeoutConstant = 0;
+				SetCommTimeouts(m_port, &ct);
+
+
+
+
+
+
+
+
+
 				return true;
 			}
 		}
@@ -122,6 +155,7 @@ int CSerialPort::Send(const void * data, uint byteCount)
 	else
 	{
 		// error invalid op!
+		FAIL("a");
 	}
 
 	return 0;
@@ -142,6 +176,7 @@ int CSerialPort::Recv(void * buffer, uint maxByteCount)
 	else
 	{
 		// error invalid op!
+		FAIL("b");
 	}
 
 	return 0;

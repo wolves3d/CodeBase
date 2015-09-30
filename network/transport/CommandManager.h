@@ -118,13 +118,12 @@ struct INetCommand : IResponseHandler
 	virtual const char * GetName() const { return #REQ_NAME; } \
 	virtual uint GetCommandID() const { return CMD_ID; } \
 	virtual uint GetResponseID() const { return RSP_ID; } \
-	virtual uint OnFillData(void * buffer, uint maxByteCount); \
 
 
 #define REQUEST_HANDLER_DECL(REQUEST_NAME, COMMAND_ID, RESPONSE_ID) \
 class REQUEST_NAME : public INetCommand \
 { \
-REQUEST_HANDLER_BODY(REQUEST_NAME, COMMAND_ID, RESPONSE_ID) \
+	REQUEST_HANDLER_BODY(REQUEST_NAME, COMMAND_ID, RESPONSE_ID) \
 };
 
 
@@ -149,31 +148,31 @@ public:
 
 	// IPacketManagerDelegate
 
-	virtual void OnIncomingPacket(IAbstractSocket * socket, BufferObject * data);
+	virtual void OnIncomingPacket(IAbstractSocket * socket, const byte *data, size_t dataSize);
 	virtual void OnClientLost(CTcpSocket * srcClient);
 	
 	virtual void OnSoftTimeout(float time, CTcpSocket * client, CNetworkCommand * command) {};
 	virtual void OnHardTimeout(float time, CTcpSocket * client, CNetworkCommand * command) {};
 
 	// CCommandManager
-	CCommandManager(ITransportPacket * packet);
+	CCommandManager(ITransportPacket * packet, bool singleCommandMode);
 
 	uint RegisterHandler(IResponseHandler * handler);
 	void UnregisterHandler(uint handlerID);
 	IResponseHandler * GetHandler(uint handlerID);
 
-	/// Кладет команду в другой поток и тут же возвращает управление
-//	void SendCommand(IAbstractSocket * socket, uint cmdID, void * data, uint byteCount);
 	void SendCommand(IAbstractSocket * socket, INetCommand * command);
 	
 	/// Получена входящая команда от клиента
 	void OnUnknownCommand();
 
-	void OnUpdate() { m_packetMgr->OnUpdate(m_packet); }
+	void OnUpdate();
 
 	CPacketManager * GetPacketManager() { return m_packetMgr; }
 
 private:
+
+
 	void AddUniqueHandler(uint uniqueCommandID, IAbstractSocket * associatedSocket, INetCommand * command);
 	void RemoveUniqueHandler(IAbstractSocket * associatedSocket, uint uniqueCommandID);
 	void RemoveUniqueHandlers(IAbstractSocket * associatedSocket);
@@ -187,7 +186,6 @@ private:
 	/// Universal handlers (not associated with particular socket)
 	vector <IResponseHandler *> m_handlerList;
 
-
 	//map <uint, INetCommand *> m_uniqueHandlerList;
 	struct HandlerMap
 	{
@@ -198,7 +196,34 @@ private:
 
 
 	uint m_commandCounter;
-	uint GetNextCmdNumber() { return ++m_commandCounter; }
+	uint GetNextCmdNumber();
+
+
+	struct TDelayedPacket
+	{
+		TDelayedPacket(IAbstractSocket * s, INetCommand * cmd, uint tag, byte * buffer, size_t bufferSize)
+			: socket(s)
+			, command(cmd)
+			, uniqueHandlerTag(tag)
+			, packetSize(bufferSize)
+		{
+			packetData = NEW byte[packetSize];
+			memcpy(packetData, buffer, packetSize);
+		}
+
+		IAbstractSocket *socket;
+		INetCommand *command;
+		byte *packetData;
+		size_t packetSize;
+		uint uniqueHandlerTag;
+	};
+
+	void SendPacket(TDelayedPacket *packet);
+
+	vector <TDelayedPacket *> m_packetQueue;
+
+	bool m_singleCommandMode;
+	uint m_sentCommandID;
 };
 
 //==============================================================================
