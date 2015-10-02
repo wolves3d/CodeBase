@@ -195,6 +195,12 @@ inline const char * Va( const char * szFmt, ... )
 	return szBuffer;
 }*/
 
+#ifndef WIN32
+
+unsigned GetTickCount();
+
+#endif
+
 ///////////////////////////////////////////////////////////////////////////
 
 #endif // #ifndef __Base_h_included__

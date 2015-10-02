@@ -98,7 +98,7 @@ public:
 			IAbstractSocket * socket = desc.socket;
 
 			const uint headerSize = packet->GetHeaderSize();
-			size_t targetSize = 0;
+			int targetSize = 0;
 
 			if (0 == desc.targetByteCount)
 			{

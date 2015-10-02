@@ -9,8 +9,8 @@ string u_string_format(const char *fmt, ...);
 CCommandManager::CCommandManager(ITransportPacket * packet, bool singleCommandMode)
 	: m_packet(packet)
 	, m_commandCounter(0)
-	, m_sentCommandID(0)
 	, m_singleCommandMode(singleCommandMode)
+	, m_sentCommandID(0)
 {
 	m_packetMgr = NEW CPacketManager();
 	m_packetMgr->SetDelegate(this);

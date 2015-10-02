@@ -4,7 +4,17 @@
 //==============================================================================
 
 #ifdef WIN32
+
 #include <winsock2.h>
+
+#else
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+typedef int SOCKET;
+
 #endif // WIN32
 
 #include "CodeBase/network/AbstractSocket.h"
@@ -29,7 +39,8 @@ public:
 	int Connect(const char *pIPaddr, unsigned int nPort);
 
 //private:
-	SOCKADDR_IN	m_addr;
+	//sockaddr_in
+	sockaddr_in	m_addr;
 	SOCKET		m_socket;
 };
 

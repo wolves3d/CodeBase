@@ -29,7 +29,7 @@ public:
 
 	~CMutex()
 	{
-		assert(false == m_isLocked);
+		DEBUG_ASSERT(false == m_isLocked);
 		pthread_mutex_destroy(&m_mutex);
 	}
 
@@ -50,14 +50,14 @@ private:
 	CMutex(const CMutex & otherMutex)
 	{
 		// not allowed
-		assert(false);
+		DEBUG_ASSERT(false);
 	}
 
 	void Init()
 	{
 		if (0 != pthread_mutex_init(&m_mutex, NULL))
 		{
-			assert(false);
+			DEBUG_ASSERT(false);
 		}
 	}
 
@@ -85,9 +85,9 @@ class CThreadTask
 public:
 
 	CThreadTask(IThreadTaskDelegate * delegate = NULL)
-		: _delegate(delegate)
-		, _parent(NULL)
+		: _parent(NULL)
 		, _tag(0)
+		, _delegate(delegate)
 	{}
 
 	CThread * GetParent() { return _parent; }
@@ -202,7 +202,7 @@ public:
 
 	virtual void * Main()
 	{
-		assert(false); // should override
+		DEBUG_ASSERT(false); // should override
 		return NULL;
 	}
 
@@ -266,6 +266,7 @@ public:
 	}
 	*/
 
+	/*
 	static int GetID()
 	{
 		pthread_t result = pthread_self();
@@ -276,6 +277,7 @@ public:
 			return (int)result;
 		#endif
 	}
+	*/
 
 	void PostMessage(ThreadMsg::ECode code, CThreadTask * task, void * arg = NULL)
 	{

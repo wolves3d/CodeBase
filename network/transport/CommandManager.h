@@ -204,8 +204,8 @@ private:
 		TDelayedPacket(IAbstractSocket * s, INetCommand * cmd, uint tag, byte * buffer, size_t bufferSize)
 			: socket(s)
 			, command(cmd)
-			, uniqueHandlerTag(tag)
 			, packetSize(bufferSize)
+			, uniqueHandlerTag(tag)
 		{
 			packetData = NEW byte[packetSize];
 			memcpy(packetData, buffer, packetSize);
