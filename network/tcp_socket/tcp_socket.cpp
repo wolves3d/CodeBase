@@ -45,7 +45,7 @@ int CTcpSocket::Accept(CTcpSocket * outClient)
 	bind(m_socket, (sockaddr *)&m_addr, sizeof(m_addr));
 	listen(m_socket, SOMAXCONN);
 
-	int addrLen = sizeof(outClient->m_addr);
+	socklen_t addrLen = sizeof(outClient->m_addr);
 	outClient->m_socket = accept(m_socket, (sockaddr *) &(outClient->m_addr), &addrLen);
 	
 #ifdef WIN32
