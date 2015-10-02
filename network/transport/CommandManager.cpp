@@ -113,7 +113,7 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * comman
 
 	uint z = command->GetResponseID();
 
-	uint commandUniqueID = (NULL != command->GetResponseID())
+	uint commandUniqueID = (0 != command->GetResponseID())
 		? GetNextCmdNumber()
 		: 0;
 

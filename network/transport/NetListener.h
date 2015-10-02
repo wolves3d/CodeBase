@@ -63,20 +63,18 @@ public:
 		{
 			const ThreadMsg & msg = messages[i];
 
-			switch (msg.code)
+			//switch (msg.code)
+
+			if (ThreadMsg::TASK_COMPLETED == msg.code)
 			{
-				case ThreadMsg::TASK_COMPLETED:
-				{
-					ListenTask * task = SAFE_CAST(ListenTask *, msg.task);
-					CTcpSocket * clientSocket = new CTcpSocket(task->GetClientSocket());
-					//m_clientList.push_back(clientSocket);
+				ListenTask * task = SAFE_CAST(ListenTask *, msg.task);
+				CTcpSocket * clientSocket = new CTcpSocket(task->GetClientSocket());
+				//m_clientList.push_back(clientSocket);
 
-					m_delegate->OnClientConnected(clientSocket);
+				m_delegate->OnClientConnected(clientSocket);
 
-					// restart task
-					m_listenThread.PushTask(task);
-				}
-				break;
+				// restart task
+				m_listenThread.PushTask(task);
 			}
 		}
 	}
