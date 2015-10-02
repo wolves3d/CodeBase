@@ -29,7 +29,7 @@ bool CSerialPort::Open(const char * portName)
 			0,                                  // the COM-port can't be shared
 			NULL,                               // the object gets a default security.
 			OPEN_EXISTING,                      // Specify which action to take on file. 
-			0 /* FILE_ATTRIBUTE_NORMAL /*FILE_FLAG_OVERLAPPED*/,				// default.
+			0, // FILE_ATTRIBUTE_NORMAL // FILE_FLAG_OVERLAPPED,				// default.
 			NULL);
 
 		if (INVALID_HANDLE_VALUE != m_port)

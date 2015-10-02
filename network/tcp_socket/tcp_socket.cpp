@@ -8,7 +8,7 @@ bool g_wsaStartupFlag = false;
 
 
 CTcpSocket::CTcpSocket()
-	: m_socket( NULL )
+	: m_socket(0)
 {
 
 #ifdef WIN32
