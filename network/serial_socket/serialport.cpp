@@ -86,7 +86,7 @@ void CSerialPort::Close()
 }
 
 
-uint CSerialPort::Send(const void * data, uint byteCount)
+int CSerialPort::Send(const void * data, uint byteCount)
 {
 	if (true == IsValid())
 	{
@@ -97,7 +97,7 @@ uint CSerialPort::Send(const void * data, uint byteCount)
 }
 
 
-uint CSerialPort::Recv(void * buffer, uint maxByteCount)
+int CSerialPort::Recv(void * buffer, uint maxByteCount)
 {
 	if (true == IsValid())
 	{

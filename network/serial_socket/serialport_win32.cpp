@@ -1,6 +1,7 @@
 #include "CodeBase/CodeBase.h"
 #include "serialport.h"
 
+#ifdef WIN32
 
 // http://www.codeproject.com/Articles/3061/Creating-a-Serial-communication-on-Win
 
@@ -181,3 +182,5 @@ int CSerialPort::Recv(void * buffer, uint maxByteCount)
 
 	return 0;
 }
+
+#endif // #ifdef WIN32

@@ -42,14 +42,18 @@ int CTcpSocket::Accept(CTcpSocket * outClient)
 		return 0;
 	
 	m_addr.sin_addr.s_addr = INADDR_ANY;
-	bind(m_socket, (LPSOCKADDR)&m_addr, sizeof(m_addr));
+	bind(m_socket, (sockaddr *)&m_addr, sizeof(m_addr));
 	listen(m_socket, SOMAXCONN);
 
 	int addrLen = sizeof(outClient->m_addr);
 	outClient->m_socket = accept(m_socket, (sockaddr *) &(outClient->m_addr), &addrLen);
-
+	
+#ifdef WIN32
 	u_long value = 1;
-	ioctlsocket(outClient->m_socket, FIONBIO, &value); // O_NONBLOCK
+	ioctlsocket(outClient->m_socket, FIONBIO, &value);
+#else	
+	fcntl(outClient->m_socket, F_SETFL, O_NONBLOCK);
+#endif // #ifdef WIN32
 
 	return 1;
 }
@@ -63,8 +67,12 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 
 	m_socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 
+#ifdef WIN32
 	u_long value = 1;
-	ioctlsocket(m_socket, FIONBIO, &value); // O_NONBLOCK
+	ioctlsocket(m_socket, FIONBIO, &value);
+#else	
+	fcntl(m_socket, F_SETFL, O_NONBLOCK);
+#endif // #ifdef WIN32
 
 	m_addr.sin_family		= AF_INET;
 	m_addr.sin_addr.s_addr	= inet_addr(pIPaddr);

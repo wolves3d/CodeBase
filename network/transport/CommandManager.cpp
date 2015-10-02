@@ -123,8 +123,8 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * comman
 
 	if ((0 == m_sentCommandID) && (0 == m_packetQueue.size()))
 	{
-		SendPacket(
-			&TDelayedPacket(socket, command, commandUniqueID, buf, packetSize));
+		TDelayedPacket sendNowPacket(socket, command, commandUniqueID, buf, packetSize);
+		SendPacket(&sendNowPacket);
 	}
 	else
 	{
@@ -301,7 +301,7 @@ void CCommandManager::RemoveUniqueHandler(IAbstractSocket * associatedSocket, ui
 
 	if (NULL != handlerMap)
 	{
-		map <uint, INetCommand *>::const_iterator it = handlerMap->m_uniqueHandlerList.find(uniqueCommandID);
+		map <uint, INetCommand *>::iterator it = handlerMap->m_uniqueHandlerList.find(uniqueCommandID);
 
 		if (handlerMap->m_uniqueHandlerList.end() != it)
 		{
