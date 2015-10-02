@@ -137,9 +137,9 @@ int CTcpSocket::Recv(void * buffer, uint maxByteCount)
 
 void CTcpSocket::Close()
 {
-	if ( NULL != m_socket )
+	if (0 != m_socket)
 	{
 		shutdown( m_socket, 2 );
-		m_socket = NULL;
+		m_socket = 0;
 	}
 }

@@ -111,7 +111,7 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * comman
 	
 	// fill packet header ------------------------------------------------------
 
-	uint z = command->GetResponseID();
+	//uint z = command->GetResponseID();
 
 	uint commandUniqueID = (0 != command->GetResponseID())
 		? GetNextCmdNumber()
