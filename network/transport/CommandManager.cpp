@@ -135,7 +135,7 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * comman
 
 		m_packetQueue.push_back(delayedPacket);
 
-		printf("command queue inc: %d\n", m_packetQueue.size());
+		printf("command queue inc: %d (cmdid: %d)\n", m_packetQueue.size(), command->GetCommandID());
 	}
 }
 
@@ -143,6 +143,8 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * comman
 void CCommandManager::SendPacket(TDelayedPacket *packet)
 {
 	const uint requestID = packet->command->GetCommandID();
+
+	printf("Send CMD id:%d size:%d\n", packet->packetData[0], packet->packetSize);
 
 	packet->socket->Send(
 		packet->packetData,
@@ -202,6 +204,8 @@ void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, const byte *dat
 	const byte * packetBytes = data;// (const byte *)data->GetConstPointer();
 	uint handlerID = m_packet->GetCommandID(packetBytes);
 	uint tag = m_packet->GetCommandTag(packetBytes);
+
+	printf("OnIncomingPacket handler:%d tag:%d size:%d\n", handlerID, tag, dataSize);
 
 	IResponseHandler * uniqueHandler = (0 != tag)
 		? FindHandler(tag, socket)

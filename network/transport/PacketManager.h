@@ -104,20 +104,30 @@ public:
 			{
 				// header wasn't filled yet
 				targetSize = (headerSize - desc.writtenBytes);
+
+				//printf("wait header %d bytes (%d - %d)\n", targetSize, headerSize, desc.writtenBytes);
 			}
 			else
 			{
 				// we've already got header, so read arguments
 				targetSize = ((headerSize + desc.targetByteCount) - desc.writtenBytes);
+
+				//printf("wait args %d bytes (%d + %d - %d)\n", targetSize, headerSize, desc.targetByteCount,  desc.writtenBytes);
 			}
 
 			// Read header
 			byte * buf = (desc.buffer + desc.writtenBytes);
-			const int rcvd = socket->Recv(buf, targetSize);
+			int rcvd = 0;
 
-			if (rcvd > 0)
+			if (targetSize > 0)
 			{
-				desc.writtenBytes += rcvd;
+				const int rcvd = socket->Recv(buf, targetSize);
+
+				if (rcvd > 0)
+				{
+					desc.writtenBytes += rcvd;
+//					printf("written %d bytes\n", rcvd);
+				}
 			}
 
 			if (rcvd == targetSize)
@@ -127,14 +137,23 @@ public:
 				if (0 == desc.targetByteCount)
 				{
 					// on header recvd
-					desc.targetByteCount = packet->GetArgumentSize(buf);
-					//const uint dataSize = packet->GetArgumentSize(buf);
-
+					desc.targetByteCount = packet->GetArgumentSize(desc.buffer);
+/*
+					printf("Got header %d, %d, %d arg size %d\n",
+						(int)desc.buffer[0],
+						(int)desc.buffer[1],
+						(int)desc.buffer[2], desc.targetByteCount);
+*/
 					packetRcvd = (0 == desc.targetByteCount);
 				}
 
 				if (true == packetRcvd)
 				{
+					printf("Got packet %d, %d, %d arg size %d\n",
+						(int)desc.buffer[0],
+						(int)desc.buffer[1],
+						(int)desc.buffer[2], desc.targetByteCount);
+
 					m_delegate->OnIncomingPacket(socket, desc.buffer, desc.writtenBytes);
 					desc.ResetBuffer();
 				}
