@@ -149,11 +149,12 @@ public:
 
 				if (true == packetRcvd)
 				{
+					/*
 					printf("Got packet %d, %d, %d arg size %d\n",
 						(int)desc.buffer[0],
 						(int)desc.buffer[1],
 						(int)desc.buffer[2], desc.targetByteCount);
-
+					*/
 					m_delegate->OnIncomingPacket(socket, desc.buffer, desc.writtenBytes);
 					desc.ResetBuffer();
 				}
