@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 
 typedef int SOCKET;
+#define InetPton inet_pton
 
 #endif // WIN32
 

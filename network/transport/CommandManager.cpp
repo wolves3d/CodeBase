@@ -135,7 +135,7 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * comman
 
 		m_packetQueue.push_back(delayedPacket);
 
-		printf("command queue inc:%zu (cmdid: %u)\n", m_packetQueue.size(), command->GetCommandID());
+		printf("command queue inc:%llu (cmdid: %u)\n", (unsigned long long)m_packetQueue.size(), command->GetCommandID());
 	}
 }
 
@@ -188,7 +188,7 @@ void CCommandManager::OnUpdate()
 			m_packetQueue.erase(m_packetQueue.begin());
 			DEL(packetRecord);
 
-			printf("command queue dec: %zu\n", m_packetQueue.size());
+			printf("command queue dec: %llu\n", (unsigned long long)m_packetQueue.size());
 		}
 	}
 }

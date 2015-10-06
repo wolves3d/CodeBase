@@ -75,7 +75,7 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 #endif // #ifdef WIN32
 
 	m_addr.sin_family		= AF_INET;
-	m_addr.sin_addr.s_addr	= inet_addr(pIPaddr);
+	InetPton(m_addr.sin_family, pIPaddr, &m_addr.sin_addr.s_addr);
 	m_addr.sin_port			= htons( nPort );
 
 	/*
