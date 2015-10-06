@@ -60,6 +60,8 @@ struct IResponseHandler
 		, m_callbackArg(NULL)
 	{}
 
+	virtual ~IResponseHandler() {}
+
 	//virtual const char * GetName() const = 0;
 
 	void SetCallback(ICallback * callback, void * callbackArg)
