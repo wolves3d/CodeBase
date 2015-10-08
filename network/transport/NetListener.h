@@ -45,6 +45,7 @@ public:
 
 	bool Init(int portToListen)
 	{
+		m_port = portToListen;
 		printf("Server listening on port %d\n", portToListen);
 		m_serverSocket.Init(portToListen);
 
@@ -75,6 +76,8 @@ public:
 				m_delegate->OnClientConnected(clientSocket);
 
 				// restart task
+				printf("Server listening on port %d\n", m_port);
+				m_serverSocket.Init(m_port);
 				m_listenThread.PushTask(task);
 			}
 		}
@@ -91,6 +94,8 @@ private:
 	CTcpSocket m_serverSocket;
 	CThread m_listenThread;
 	INetListenerDelegate * m_delegate;
+
+	int m_port;
 
 	//vector <CTcpSocket *> m_clientList;
 };
