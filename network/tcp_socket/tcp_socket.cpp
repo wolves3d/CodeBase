@@ -96,7 +96,7 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 
 	printf( "Connecting to %s port %d... ", pIPaddr, nPort );
 
-	int nRes = connect( m_socket, (struct sockaddr *)&m_addr, sizeof(struct sockaddr) );
+	int nRes = connect(m_socket, (struct sockaddr *)&m_addr, sizeof(m_addr));
 
 	if ( 0 == nRes )
 	{
@@ -104,8 +104,42 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 	}
 	else
 	{
-		printf ( "Error\n" );
+		printf ( "Error:%d\n", nRes);
+
+		#ifdef WIN32
+		{
+			LPVOID lpMsgBuf;
+			LPVOID lpDisplayBuf;
+			DWORD dw = GetLastError();
+
+			FormatMessage(
+				FORMAT_MESSAGE_ALLOCATE_BUFFER |
+				FORMAT_MESSAGE_FROM_SYSTEM |
+				FORMAT_MESSAGE_IGNORE_INSERTS,
+				NULL,
+				dw,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPTSTR)&lpMsgBuf,
+				0, NULL);
+
+			const char * lpszFunction = "FFF";
+
+			// Display the error message and exit the process
+
+			lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT,
+				(lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR));
+
+			sprintf_s((LPTSTR)lpDisplayBuf,
+				LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+				TEXT("%s failed with error %d: %s"),
+				lpszFunction, dw, lpMsgBuf);
+			MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
+
+			LocalFree(lpMsgBuf);
+			LocalFree(lpDisplayBuf);
 		}
+		#endif // #ifdef WIN32
+	}
 
 	#ifdef WIN32
 	u_long value = 1;
