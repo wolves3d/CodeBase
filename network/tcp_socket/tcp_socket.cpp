@@ -67,12 +67,12 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 
 	m_socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 
-#ifdef WIN32
-	u_long value = 1;
-	ioctlsocket(m_socket, FIONBIO, &value);
-#else	
-	fcntl(m_socket, F_SETFL, O_NONBLOCK);
-#endif // #ifdef WIN32
+// #ifdef WIN32
+// 	u_long value = 1;
+// 	ioctlsocket(m_socket, FIONBIO, &value);
+// #else	
+// 	fcntl(m_socket, F_SETFL, O_NONBLOCK);
+// #endif // #ifdef WIN32
 
 	m_addr.sin_family		= AF_INET;
 	InetPton(m_addr.sin_family, pIPaddr, &m_addr.sin_addr.s_addr);
@@ -105,7 +105,14 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 	else
 	{
 		printf ( "Error\n" );
-	}
+		}
+
+	#ifdef WIN32
+	u_long value = 1;
+	ioctlsocket(m_socket, FIONBIO, &value);
+	#else	
+	fcntl(m_socket, F_SETFL, O_NONBLOCK);
+	#endif // #ifdef WIN32
 
 	return nRes;
 }
