@@ -50,6 +50,7 @@ public:
 
 		m_listenThread.Init();
 		m_listenThread.PushTask(new ListenTask(&m_serverSocket));
+		Sleep(500); // FIXME for debug
 
 		return true;
 	}
