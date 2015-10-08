@@ -44,6 +44,13 @@ int CTcpSocket::Accept(CTcpSocket * outClient)
 	
 	m_addr.sin_addr.s_addr = INADDR_ANY;
 
+
+	u_long value = 1;
+	if (0 != setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value)))
+	{
+		printf("setsockopt failed, errno: %d\n", errno);
+	}
+
 	if (0 != bind(m_socket, (sockaddr *)&m_addr, sizeof(m_addr)))
 	{
 		printf("bind failed, errno: %d\n", errno);
@@ -58,8 +65,8 @@ int CTcpSocket::Accept(CTcpSocket * outClient)
 	outClient->m_socket = accept(m_socket, (sockaddr *) &(outClient->m_addr), &addrLen);
 	
 #ifdef WIN32
-	u_long value = 1;
-	ioctlsocket(outClient->m_socket, FIONBIO, &value);
+	u_long wvalue = 1;
+	ioctlsocket(outClient->m_socket, FIONBIO, &wvalue);
 #else	
 	fcntl(outClient->m_socket, F_SETFL, O_NONBLOCK);
 #endif // #ifdef WIN32
