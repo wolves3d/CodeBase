@@ -77,7 +77,7 @@ public:
 
 				// restart task
 				printf("Server listening on port %d\n", m_port);
-				m_serverSocket.Init(m_port);
+				//m_serverSocket.Init(m_port);
 				m_listenThread.PushTask(task);
 			}
 		}
