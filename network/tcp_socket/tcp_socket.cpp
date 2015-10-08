@@ -22,6 +22,7 @@ CTcpSocket::CTcpSocket()
 	}
 #endif
 
+	memset(&m_addr, 0, sizeof(m_addr));
 }
 
 
