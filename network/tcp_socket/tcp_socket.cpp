@@ -28,7 +28,7 @@ CTcpSocket::CTcpSocket()
 
 int CTcpSocket::Init(int port)
 {
-	m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+	m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	printf("init_socket: %d\n", m_socket);
 
 	m_addr.sin_port = htons(port);
@@ -74,7 +74,7 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 		return -1;
 	}
 
-	m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+	m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 // #ifdef WIN32
 // 	u_long value = 1;
