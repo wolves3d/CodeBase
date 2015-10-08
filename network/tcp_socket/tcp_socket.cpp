@@ -42,8 +42,16 @@ int CTcpSocket::Accept(CTcpSocket * outClient)
 		return 0;
 	
 	m_addr.sin_addr.s_addr = INADDR_ANY;
-	bind(m_socket, (sockaddr *)&m_addr, sizeof(m_addr));
-	listen(m_socket, SOMAXCONN);
+
+	if (0 != bind(m_socket, (sockaddr *)&m_addr, sizeof(m_addr)))
+	{
+		printf("bind failed, errno: %d\n", errno);
+	}
+
+	if (0 != listen(m_socket, SOMAXCONN))
+	{
+		printf("listen failed, errno: %d\n", errno);
+	}
 
 	socklen_t addrLen = sizeof(outClient->m_addr);
 	outClient->m_socket = accept(m_socket, (sockaddr *) &(outClient->m_addr), &addrLen);
