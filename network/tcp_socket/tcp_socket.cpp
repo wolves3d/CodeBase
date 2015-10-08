@@ -104,7 +104,7 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 	}
 	else
 	{
-		printf ( "Error:%d\n", nRes);
+		printf("Error:%d\n", errno);
 
 		#ifdef WIN32
 		{
