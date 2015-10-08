@@ -46,6 +46,7 @@ public:
 	//sockaddr_in
 	sockaddr_in	m_addr;
 	SOCKET		m_socket;
+	bool		m_isListening;
 };
 
 //==============================================================================
