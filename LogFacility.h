@@ -19,22 +19,22 @@ public:
 
 	static std::string Now()
 	{
-		time_t t; tm tk;
+		time_t t; tm *tk;
 		time(&t);
-		localtime_s(&tk, &t);
+		tk = localtime(&t);
 
-		std::string result = Va("%04d_%02d_%02d_[%02d_%02d]", 1900 + tk.tm_year, 1 + tk.tm_mon, tk.tm_mday, tk.tm_hour, tk.tm_min);
+		std::string result = Va("%04d_%02d_%02d_[%02d_%02d]", 1900 + tk->tm_year, 1 + tk->tm_mon, tk->tm_mday, tk->tm_hour, tk->tm_min);
 		return result;
 	}
 
 	static std::string NowLog()
 	{
-		time_t t; tm tk;
+		time_t t; tm *tk;
 		time(&t);
-		localtime_s(&tk, &t);
+		tk = localtime(&t);
 
 		std::string result = Va("%04d_%02d_%02d_%02d:%02d:%02d",
-			1900 + tk.tm_year, 1 + tk.tm_mon, tk.tm_mday, tk.tm_hour, tk.tm_min, tk.tm_sec);
+			1900 + tk->tm_year, 1 + tk->tm_mon, tk->tm_mday, tk->tm_hour, tk->tm_min, tk->tm_sec);
 		return result;
 	}
 };
@@ -65,7 +65,7 @@ public:
 	CLog();
 
 	void LogFile(const char *szFileName);
-	void SetParams(ELogLevel logLevel = LOG_LEVEL_INFO, bool haltOnError = false, ILogDelegates * loggerDelegates = nullptr);
+	void SetParams(ELogLevel logLevel = LOG_LEVEL_INFO, bool haltOnError = false, ILogDelegates * loggerDelegates = NULL);
 
 	// FIXME: multithread unsafe
 	void Log(ELogLevel logLevel, const char *logTag, const char * szMessage, const char *szFile, size_t line);

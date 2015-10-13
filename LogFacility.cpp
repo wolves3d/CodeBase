@@ -9,26 +9,26 @@ const char * Va(const char * szFmt, ...)
 
 	va_list vArgs;
 	va_start(vArgs, szFmt);
-	vsprintf_s(szBuffer, MAX_STR_BUFFER, szFmt, vArgs);
+	vsprintf(szBuffer, szFmt, vArgs);
 	va_end(vArgs);
 
 	return szBuffer;
 }
 
 
-CLog *CLog::m_instance = nullptr;
+CLog *CLog::m_instance = NULL;
 
 
 CLog::CLog()
 {
-	m_logFile = nullptr;
+	m_logFile = NULL;
 	SetParams();
 }
 
 
 CLog * CLog::Instance()
 {
-	if (nullptr == m_instance)
+	if (NULL == m_instance)
 	{
 		m_instance = new CLog();
 	}
@@ -47,7 +47,7 @@ void CLog::SetParams(ELogLevel logLevel, bool haltOnError, ILogDelegates * logge
 
 void CLog::LogFile(const char *szFileName)
 {
-	if (nullptr != m_logFile)
+	if (NULL != m_logFile)
 	{
 		LOG_ERROR("Log file already open!");
 	}
@@ -62,7 +62,7 @@ void CLog::Log(ELogLevel logLevel, const char *logTag, const char * szMessage, c
 
 	if (m_logLevel <= logLevel)
 	{
-		if (nullptr != m_logFile)
+		if (NULL != m_logFile)
 		{
 			fprintf(m_logFile, "%s ", CTextTime::NowLog().c_str());
 
@@ -96,7 +96,7 @@ void CLog::Log(ELogLevel logLevel, const char *logTag, const char * szMessage, c
 		}
 	}
 
-	if (nullptr != m_delegates)
+	if (NULL != m_delegates)
 	{
 		m_delegates->OnMessage(logLevel, messageCopy.c_str());
 	}
