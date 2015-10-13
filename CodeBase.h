@@ -129,7 +129,7 @@ void AssertMsg(const char * szFile, int nLine, const char * szString);
 
 
 #include <CodeBase/API/ISystem.h>
-//#include <Memory.h>
+#include <CodeBase/LogFacility.h>
 #include <CodeBase/BufferObject.h>
 
 #define NEW new

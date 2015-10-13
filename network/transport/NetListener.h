@@ -46,7 +46,7 @@ public:
 	bool Init(int portToListen)
 	{
 		m_port = portToListen;
-		printf("Server listening on port %d\n", portToListen);
+		LOG_INFO("Server listening on port %d", portToListen);
 		m_serverSocket.Init(portToListen);
 
 		m_listenThread.Init();
@@ -76,7 +76,7 @@ public:
 				m_delegate->OnClientConnected(clientSocket);
 
 				// restart task
-				printf("Server listening on port %d\n", m_port);
+				LOG_INFO("Server listening on port %d", m_port);
 				//m_serverSocket.Init(m_port);
 				m_listenThread.PushTask(task);
 			}

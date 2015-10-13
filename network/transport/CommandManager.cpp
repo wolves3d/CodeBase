@@ -68,7 +68,7 @@ uint CCommandManager::RegisterHandler(IResponseHandler * handler)
 	}
 	
 	m_handlerList[handlerID] = handler;
-	printf("handler registred (%s) with id (%d)\n", handler->GetName(), handlerID);
+	LOG_INFO("handler registred (%s) with id (%d)", handler->GetName(), handlerID);
 
 	return handlerID;
 }
@@ -79,7 +79,7 @@ void CCommandManager::UnregisterHandler(uint handlerID)
 	if (NULL != GetHandler(handlerID))
 	{
 		m_handlerList[handlerID] = NULL;
-		printf("handler UNregistred (%d)\n", handlerID);
+		LOG_INFO("handler UNregistred (%d)", handlerID);
 	}
 }
 
@@ -135,7 +135,7 @@ void CCommandManager::SendCommand(IAbstractSocket * socket, INetCommand * comman
 
 		m_packetQueue.push_back(delayedPacket);
 
-		printf("command queue inc:%llu (cmdid: %u)\n", (unsigned long long)m_packetQueue.size(), command->GetCommandID());
+		LOG_INFO("command queue inc:%llu (cmdid: %u)", (unsigned long long)m_packetQueue.size(), command->GetCommandID());
 	}
 }
 
@@ -188,7 +188,7 @@ void CCommandManager::OnUpdate()
 			m_packetQueue.erase(m_packetQueue.begin());
 			DEL(packetRecord);
 
-			printf("command queue dec: %llu\n", (unsigned long long)m_packetQueue.size());
+			LOG_INFO("command queue dec: %llu", (unsigned long long)m_packetQueue.size());
 		}
 	}
 }
@@ -314,7 +314,7 @@ void CCommandManager::RemoveUniqueHandler(IAbstractSocket * associatedSocket, ui
 		}
 	}
 
-	DEBUG_MSG("unique handler not found");
+	LOG_ERROR("unique handler not found");
 }
 
 void CCommandManager::RemoveUniqueHandlers(IAbstractSocket * associatedSocket)

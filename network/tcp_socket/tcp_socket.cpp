@@ -30,7 +30,7 @@ CTcpSocket::CTcpSocket()
 int CTcpSocket::Init(int port)
 {
 	m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	printf("init_socket: %d\n", m_socket);
+	LOG_INFO("init_socket: %d", m_socket);
 
 	m_addr.sin_port = htons(port);
 	m_addr.sin_family = AF_INET;
@@ -51,17 +51,17 @@ int CTcpSocket::Accept(CTcpSocket * outClient)
 		u_long value = 1;
 		if (0 != setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value)))
 		{
-			printf("setsockopt failed, errno: %d\n", errno);
+			LOG_INFO("setsockopt failed, errno: %d", errno);
 		}
 
 		if (0 != bind(m_socket, (sockaddr *)&m_addr, sizeof(m_addr)))
 		{
-			printf("bind failed, errno: %d\n", errno);
+			LOG_INFO("bind failed, errno: %d", errno);
 		}
 
 		if (0 != listen(m_socket, SOMAXCONN))
 		{
-			printf("listen failed, errno: %d\n", errno);
+			LOG_INFO("listen failed, errno: %d", errno);
 		}
 	}
 
@@ -114,17 +114,17 @@ int CTcpSocket::Connect(const char *pIPaddr, unsigned int nPort)
 
 
 
-	printf( "Connecting to %s port %d... ", pIPaddr, nPort );
+	LOG_INFO("Connecting to %s port %d... ", pIPaddr, nPort);
 
 	int nRes = connect(m_socket, (struct sockaddr *)&m_addr, sizeof(m_addr));
 
 	if ( 0 == nRes )
 	{
-		printf( "OK\n" );
+		LOG_INFO("OK");
 	}
 	else
 	{
-		printf("Error:%d\n", errno);
+		LOG_INFO("Error:%d", errno);
 
 		#ifdef WIN32
 		{
