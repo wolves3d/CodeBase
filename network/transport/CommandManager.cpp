@@ -49,7 +49,7 @@ uint CCommandManager::RegisterHandler(IResponseHandler * handler)
 {
 	if (NULL == handler)
 	{
-		FAIL("Invalid handler pointer");
+		LOG_ERROR("Invalid handler pointer");
 		return 0;
 	}
 
@@ -57,13 +57,13 @@ uint CCommandManager::RegisterHandler(IResponseHandler * handler)
 	
 	if (false == CheckHandlerID(handlerID))
 	{
-		FAIL("Bad handler ID!");
+		LOG_ERROR("Bad handler ID!");
 		return 0;
 	}
 
 	if (NULL != GetHandler(handlerID))
 	{
-		FAIL("Command already registred");
+		LOG_ERROR("Command already registred");
 		return 0;
 	}
 	
@@ -217,8 +217,7 @@ void CCommandManager::OnIncomingPacket(IAbstractSocket * socket, const byte *dat
 
 	if (NULL == handler)
 	{
-		string errorStr = u_string_format("command handler (%d tag:%d) not found!", handlerID, tag);
-		FAIL(errorStr.c_str());
+		LOG_ERROR("command handler (%d tag:%d) not found!", handlerID, tag);
 		return;
 	}
 
@@ -319,5 +318,5 @@ void CCommandManager::RemoveUniqueHandler(IAbstractSocket * associatedSocket, ui
 
 void CCommandManager::RemoveUniqueHandlers(IAbstractSocket * associatedSocket)
 {
-	FAIL("implement me");
+	LOG_ERROR("implement me");
 }
